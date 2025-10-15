@@ -4,6 +4,13 @@ title: "Homework 1"
 permalink: /articoli/HMW-1/
 ---
 
+**Author:** {{ site.author }}  
+**Matricola:** {{ site.author_student_number }}  
+**Email:** [{{ site.author_email }}](mailto:{{ site.author_email }})  
+**Course:** {{ site.course }} — {{ site.university }}  
+**Academic Year:** {{ site.academic_year }}
+
+---
 
 # What is statistics, and why can it be useful for cybersecurity?
 
@@ -72,7 +79,6 @@ Advantages: easy to implement and explain. Cautions: needs to handle missing dat
 1. Gather data: CVE severity, exploit presence in public repos, asset criticality.
 2. Fit a simple logistic regression predicting whether a CVE was observed exploited historically.
 3. Use predicted probabilities to rank which vulnerabilities to patch first.
-
 
 ## Conclusion
 
