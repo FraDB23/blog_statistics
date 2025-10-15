@@ -8,7 +8,7 @@ baseurl: "/statistics"             # name of your repository
 author:
   name: "Francesco Del Borgo"
   email: "delborgo.2061739@studenti.uniroma1.it"
-  matricola: "2061739"
+  student_number: "2061739"
 
 university: "Università La Sapienza di Roma"
 course: "Cybersecurity"

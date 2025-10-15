@@ -6,18 +6,18 @@ title: "Welcome to My Statistics Blog"
 # 📊 Blog of the Statistics Course
 
 Welcome to my blog!  
-Here I will publish all the **homeworks and projects** from the *Statistics* course of the **Cybersecurity degree** at *La Sapienza University of Rome* for the academic year **2025/2026**.
+Here I will publish all the **homeworks and projects** from the *Statistics* course of the **Cybersecurity degree** at *La Sapienza University of Rome* for the academic year **{{ site.academic_year }}**.
 
 ---
 
 ## 🎯 About This Blog
 
-- **Author:** Francesco Del Borgo  
-- **Student ID:** 2061739  
-- **Email:** [delborgo.2061739@studenti.uniroma1.it](mailto:delborgo.2061739@studenti.uniroma1.it)  
-- **University:** Università La Sapienza di Roma  
-- **Course:** Cybersecurity  
-- **Academic Year:** 2025/2026  
+- **Author:** {{ site.author.name }}  
+- **Student ID:** {{ site.author.matricola }}  
+- **Email:** [{{ site.author.email }}](mailto:{{ site.author.email }})  
+- **University:** {{ site.university }}  
+- **Course:** {{ site.course }}  
+- **Academic Year:** {{ site.academic_year }}
 
 ---
 
@@ -30,7 +30,7 @@ The main goal of this blog is to build a consistent record of my progress in und
 ## 📫 Contact
 
 If you have any questions or suggestions, feel free to contact me at  
-📧 [delborgo.2061739@studenti.uniroma1.it](mailto:delborgo.2061739@studenti.uniroma1.it)
+📧 [{{ site.author.email }}](mailto:{{ site.author.email }})
 
 ---
 
