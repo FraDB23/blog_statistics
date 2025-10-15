@@ -8,8 +8,6 @@ title: "Welcome to My Statistics Blog"
 Welcome to my blog!  
 Here I will publish all the **homeworks and projects** from the *Statistics* course of the **Cybersecurity degree** at *La Sapienza University of Rome* for the academic year **2025/2026**.
 
-This space is meant to document my learning process, analyses, and reflections on statistical methods and their applications in cybersecurity — from data exploration to probability models and hypothesis testing.
-
 ---
 
 ## 🎯 About This Blog
