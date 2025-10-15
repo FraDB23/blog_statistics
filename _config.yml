@@ -50,3 +50,12 @@ social-network-links:
 exclude:
   - "README.md"
   - "LICENSE"
+
+
+
+# --- Collections ---
+collections:
+  articoli:
+    output: true
+    permalink: /articoli/:name/
+
