@@ -1,3 +1,10 @@
+---
+layout: page
+title: "Homework 1"
+permalink: /articoli/HMW-1/
+---
+
+
 # What is statistics, and why can it be useful for cybersecurity?
 
 ## Introduction
