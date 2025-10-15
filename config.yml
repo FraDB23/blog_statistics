@@ -1,0 +1,29 @@
+title: "Blog of the statistics course"
+description: "In this blog i will upload all the homeworks of the course of statistics of La Sapienza University"
+url: ""
+baseurl: "/statistics"
+theme: minima
+
+author:
+  name: "Francesco Del Borgo"
+  matricola: "2061739"
+  email: "delborgo.2061739@studenti.uniroma1.it"
+
+university: "Università La Sapienza di Roma"
+course: "Cybersecurity"
+student_number: 2061739
+academic_year: "2025/2026"
+
+collections:
+  articoli:
+    output: true
+    permalink: /articoli/:title/
+
+markdown: kramdown
+kramdown:
+  input: GFM
+  hard_wrap: false
+
+exclude:
+  - "README.md"
+  - "LICENSE"
