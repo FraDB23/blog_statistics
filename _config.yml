@@ -19,12 +19,6 @@ plugins:
   - jekyll-feed
   - jekyll-seo-tag
 
-# --- Navigation (uses _data/navigation.yml) ---
-navbar-links:
-  Home: "/"
-  Homeworks: "articoli/"
-  About: "about/"
-
 # --- Appearance ---
 navbar-col: "#004080"
 navbar-text-col: "#ffffff"
