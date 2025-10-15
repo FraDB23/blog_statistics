@@ -12,9 +12,9 @@ Here I will publish all the **homeworks and projects** from the *Statistics* cou
 
 ## 🎯 About This Blog
 
-- **Author:** {{ site.author.name }}  
-- **Student ID:** {{ site.author.matricola }}  
-- **Email:** [{{ site.author.email }}](mailto:{{ site.author.email }})  
+- **Author:** {{ site.author }}  
+- **Student ID:** {{ site.author_student_number }}  
+- **Email:** [{{ site.author_email }}](mailto:{{ site.author_email }})  
 - **University:** {{ site.university }}  
 - **Course:** {{ site.course }}  
 - **Academic Year:** {{ site.academic_year }}
@@ -30,8 +30,9 @@ The main goal of this blog is to build a consistent record of my progress in und
 ## 📫 Contact
 
 If you have any questions or suggestions, feel free to contact me at  
-📧 [{{ site.author.email }}](mailto:{{ site.author.email }})
+📧 [{{ site.author_email }}](mailto:{{ site.author_email }})
 
 ---
 
-_© {{ site.author.name }}, {{ site.university }} — Academic Year {{ site.academic_year }}_
+_© {{ site.author }}, {{ site.university }} — Academic Year {{ site.academic_year }}_
+

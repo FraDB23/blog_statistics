@@ -1,14 +1,13 @@
 # --- Site settings ---
 title: "Blog of the Statistics Course"
 description: "Homeworks and projects for the Statistics course in Cybersecurity at La Sapienza University"
-url: "https://fradb23.github.io"   # no slash at the end
-baseurl: "/statistics"             # name of your repository
+url: "https://fradb23.github.io"
+baseurl: "/statistics"
 
-# --- Author info ---
-author:
-  name: "Francesco Del Borgo"
-  email: "delborgo.2061739@studenti.uniroma1.it"
-  student_number: "2061739"
+# --- Author info (string) ---
+author: "Francesco Del Borgo"
+author_email: "delborgo.2061739@studenti.uniroma1.it"
+author_student_number: "2061739"
 
 university: "Università La Sapienza di Roma"
 course: "Cybersecurity"
