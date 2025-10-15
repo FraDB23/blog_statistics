@@ -32,7 +32,6 @@ link-col: "#0078d7"
 navbar-links:
   Home: "/"
   Homeworks: "/articoli/"
-  About: "/about/"
 
 
 # --- Markdown settings ---
