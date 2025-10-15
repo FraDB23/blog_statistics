@@ -1,29 +1,53 @@
-title: "Blog of the statistics course"
-description: "In this blog i will upload all the homeworks of the course of statistics of La Sapienza University"
-url: "https://fradb23.github.io"
-baseurl: "/statistics"
-theme: minima
+# --- Site settings ---
+title: "Blog of the Statistics Course"
+description: "Homeworks and projects for the Statistics course in Cybersecurity at La Sapienza University"
+url: "https://fradb23.github.io"   # no slash at the end
+baseurl: "/statistics"             # name of your repository
 
+# --- Author info ---
 author:
   name: "Francesco Del Borgo"
-  matricola: "2061739"
   email: "delborgo.2061739@studenti.uniroma1.it"
+  matricola: "2061739"
 
 university: "Università La Sapienza di Roma"
 course: "Cybersecurity"
-student_number: 2061739
 academic_year: "2025/2026"
 
-collections:
-  articoli:
-    output: true
-    permalink: /articoli/:title/
+# --- Theme setup ---
+remote_theme: daattali/beautiful-jekyll
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
 
+# --- Navigation (uses _data/navigation.yml) ---
+navbar-links:
+  Home: "/"
+  Homeworks: "articoli/"
+  About: "about/"
+
+# --- Appearance ---
+navbar-col: "#004080"
+navbar-text-col: "#ffffff"
+navbar-border-col: "#003060"
+footer-col: "#004080"
+footer-text-col: "#ffffff"
+page-col: "#ffffff"
+link-col: "#0078d7"
+
+# --- Markdown settings ---
 markdown: kramdown
 kramdown:
   input: GFM
   hard_wrap: false
 
+# --- Socials (optional) ---
+social-network-links:
+  email: "delborgo.2061739@studenti.uniroma1.it"
+  github: "fradb23"
+  linkedin: "francesco-del-borgo"
+
+# --- Exclude unnecessary files ---
 exclude:
   - "README.md"
   - "LICENSE"

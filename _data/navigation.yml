@@ -1,0 +1,11 @@
+# Navigation bar links for Beautiful Jekyll
+
+main:
+  - title: "Home"
+    url: /
+  - title: "Homeworks"
+    url: /articoli/
+  - title: "About"
+    url: /about/
+  - title: "Contact"
+    url: /contact/
