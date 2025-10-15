@@ -28,6 +28,13 @@ footer-text-col: "#ffffff"
 page-col: "#ffffff"
 link-col: "#0078d7"
 
+# --- Navbar ---
+navbar-links:
+  Home: "/"
+  Homeworks: "/articoli/"
+  About: "/about/"
+
+
 # --- Markdown settings ---
 markdown: kramdown
 kramdown:

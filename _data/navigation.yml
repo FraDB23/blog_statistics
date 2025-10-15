@@ -1,8 +1,0 @@
-# Navigation bar for Beautiful Jekyll
-
-main:
-  - title: "Home"
-    url: /
-
-  - title: "Homeworks"
-    url: /articoli/
