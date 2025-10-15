@@ -2,7 +2,7 @@
 title: "Blog of the Statistics Course"
 description: "Homeworks and projects for the Statistics course in Cybersecurity at La Sapienza University"
 url: "https://fradb23.github.io"
-baseurl: "/statistics"
+baseurl: "/blog_statistics"
 
 # --- Author info (string) ---
 author: "Francesco Del Borgo"
