@@ -30,10 +30,8 @@ link-col: "#0078d7"
 
 # --- Navbar ---
 navbar-links:
-  Home: "{{ site.baseurl }}/"
-  Homeworks: "{{ site.baseurl }}/articoli/"
-
-
+  Home: "index.html"
+  Homeworks: "articoli/"
 
 # --- Markdown settings ---
 markdown: kramdown
