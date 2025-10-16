@@ -141,6 +141,24 @@ Here, the interval is of 5 kilos.
 
 ---
 
-# Caesar Cipher
+# Caesar cipher
 
-Work in progress (will be posted by midnight).
+The **Caesar cipher** is a very simple substitution cipher that shifts every letter in the message by a fixed amount `k`.  
+If `k = 3`, then `A → D`, `B → E`, ..., `Z → C`.  
+Encryption (on letters mapped to `0..25`): `C = (P + k) mod 26`.  
+Decryption: `P = (C - k) mod 26`.
+
+**Example:** plaintext `HELLO`, key `3` → ciphertext `KHOOR`.
+
+## Vulnerabilities (why it’s weak)
+- **Tiny keyspace / trivial brute force** — there are only 25 nontrivial shifts, so an attacker can try all keys instantly.  
+- **Preserves letter frequencies** — the cipher only permutes letters, so common letters (like `E` in English) remain common; frequency analysis recovers the mapping quickly.  
+- **Repeated patterns stay repeated** — double letters or short repeated groups remain double/repeated in the ciphertext, leaking structure.  
+- **Known-plaintext / chosen-plaintext** — if an attacker knows or can choose some plaintext, the key is recovered immediately.  
+- **No integrity or authentication** — the cipher provides no protection against tampering; changes to ciphertext produce predictable changes in plaintext.
+
+In the following paragraph we will see how easy it is to decrypt a Caesar cipher by knowing the distribution of the letters.
+So if we know that a letter has a very high probability to appear (for example , in the english alphabet, is the letter `E`) and we notice a letter in the encrypted text that appear with the same probability, we have probably decrypted that letter, and so, discovered the shift and decrypted the
+entire text.
+
+## Encrypting a text by using Javascript
