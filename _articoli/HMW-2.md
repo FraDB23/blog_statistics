@@ -158,7 +158,116 @@ Decryption: `P = (C - k) mod 26`.
 - **No integrity or authentication** — the cipher provides no protection against tampering; changes to ciphertext produce predictable changes in plaintext.
 
 In the following paragraph we will see how easy it is to decrypt a Caesar cipher by knowing the distribution of the letters.
-So if we know that a letter has a very high probability to appear (for example , in the english alphabet, is the letter `E`) and we notice a letter in the encrypted text that appear with the same probability, we have probably decrypted that letter, and so, discovered the shift and decrypted the
+In fact, if we know that a letter has a very high probability to appear (for example , in the english alphabet, is the letter `E`) and we notice a letter in the encrypted text that appear with the same probability, we have probably decrypted that letter, and so, discovered the shift and decrypted the
 entire text.
 
 ## Encrypting a text by using Javascript
+
+```html
+<!doctype html>
+<meta charset="utf-8">
+<title>Caesar Cipher — Safe Demo</title>
+
+<textarea id="input">Hello, World!</textarea>
+<input id="shift" type="number" value="3">
+<button id="go">Encrypt</button>
+<pre id="out"></pre>
+
+<script>
+  // JavaScript: Caesar cipher helper functions and UI hookup
+
+  // Normalize the shift value to the range 0..25.
+  // This handles negative shifts and shifts greater than 26.
+  function normalizeShift(shift) {
+    // The first modulus can be negative for negative shifts,
+    // so add 26 and take modulus again to ensure a value in 0..25.
+    return ((shift % 26) + 26) % 26;
+  }
+
+  // Return true if the Unicode code corresponds to an uppercase ASCII letter (A-Z)
+  function isUppercase(code) {
+    return code >= 65 && code <= 90; // 'A' = 65, 'Z' = 90
+  }
+
+  // Return true if the Unicode code corresponds to a lowercase ASCII letter (a-z)
+  function isLowercase(code) {
+    return code >= 97 && code <= 122; // 'a' = 97, 'z' = 122
+  }
+
+  // Apply the normalized shift to an uppercase letter.
+  // - code: Unicode code of the letter (65..90)
+  // - s: normalized shift (0..25)
+  // Steps:
+  // 1) Map 'A'..'Z' to 0..25 by subtracting 65
+  // 2) Add the shift and wrap with %26
+  // 3) Convert back to Unicode code by adding 65
+  // 4) Return the character from the Unicode code
+  function shiftUppercase(code, s) {
+    const pos = code - 65;
+    const shiftedPos = (pos + s) % 26;
+    return String.fromCharCode(shiftedPos + 65);
+  }
+
+  // Apply the normalized shift to a lowercase letter.
+  // Same logic as shiftUppercase but using 97 ('a') as base.
+  function shiftLowercase(code, s) {
+    const pos = code - 97;
+    const shiftedPos = (pos + s) % 26;
+    return String.fromCharCode(shiftedPos + 97);
+  }
+
+  // Main encryption function: iterates over each character and applies Caesar shift
+  // - text: input string to encrypt
+  // - shift: integer shift (can be negative or >26)
+  // Returns the encrypted string.
+  function caesarEncrypt(text, shift) {
+    const s = normalizeShift(shift); // normalized shift in 0..25
+    let result = '';                 // build the output string here
+
+    // Loop through each character of the input text
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      const code = text.charCodeAt(i); // Unicode code of the current character
+
+      if (isUppercase(code)) {
+        // If uppercase letter, apply uppercase shifting logic
+        result += shiftUppercase(code, s);
+      } else if (isLowercase(code)) {
+        // If lowercase letter, apply lowercase shifting logic
+        result += shiftLowercase(code, s);
+      } else {
+        // Non-alphabetic characters (spaces, punctuation, numbers, accented chars...)
+        // are left unchanged.
+        result += ch;
+      }
+    }
+
+    return result;
+  }
+
+  // Hook up the UI:
+  // When the "Encrypt" button is clicked, read the text and shift input,
+  // call caesarEncrypt and place the result in the <pre> element.
+  document.getElementById('go').addEventListener('click', () => {
+    const t = document.getElementById('input').value;
+    // parseInt returns NaN if the value isn't a number; using "|| 0" falls back to 0.
+    const s = parseInt(document.getElementById('shift').value, 10) || 0;
+    document.getElementById('out').textContent = caesarEncrypt(t, s);
+  });
+</script>
+```
+
+
+**Plain text:** Sunlight spilled onto the café table as she sipped her coffee. Outside, the street hummed with morning errands and a distant bicycle bell. A stray cat found a warm patch of pavement and settled down, indifferent to the hurry around it. She wrote a single sentence in her notebook and smiled, keeping the moment.
+
+She stayed a little longer, watching people pass—an office worker balancing a stack of papers, two students sharing earbuds and laughing, a delivery rider weaving through traffic. Steam curled from her cup and mixed with the cool air; the menu board behind the barista listed the day's specials in looping chalk. When the cat stretched and leapt up onto a windowsill, a child stopped to press a small, curious palm to the glass, and the child’s mother bent down to straighten a crooked shoelace.
+
+By the time she left, the city felt stitched together by tiny interactions: a barista calling an order with theatrical cheer, an old dog greeting a familiar neighbor, the brief exchange of an umbrella lent during a sudden sprinkle. She tucked the notebook into her bag, pleased to have captured a few ordinary fragments she could return to later.
+
+
+**Encrypted text:** Yatromnz yvorrkj utzu znk iglé zghrk gy ynk yovvkj nkx iullkk. Uazyojk, znk yzxkkz nasskj cozn suxtotm kxxgtjy gtj g joyzgtz hoieirk hkrr. G yzxge igz luatj g cgxs vgzin ul vgbksktz gtj ykzzrkj juct, otjollkxktz zu znk naxxe gxuatj oz. Ynk cxuzk g yotmrk yktzktik ot nkx tuzkhuuq gtj ysorkj, qkkvotm znk susktz.
+
+Ynk yzgekj g rozzrk rutmkx, cgzinotm vkuvrk vgyy—gt ulloik cuxqkx hgrgtiotm g yzgiq ul vgvkxy, zcu yzajktzy yngxotm kgxhajy gtj rgamnotm, g jkrobkxe xojkx ckgbotm znxuamn zxglloi. Yzkgs iaxrkj lxus nkx iav gtj sodkj cozn znk iuur gox; znk skta hugxj hknotj znk hgxoyzg royzkj znk jge'y yvkiogry ot ruuvotm ingrq. Cnkt znk igz yzxkzinkj gtj rkgvz av utzu g cotjucyorr, g inorj yzuvvkj zu vxkyy g ysgrr, iaxouay vgrs zu znk mrgyy, gtj znk inorj’y suznkx hktz juct zu yzxgomnzkt g ixuuqkj ynukrgik.
+
+He znk zosk ynk rklz, znk ioze lkrz yzozinkj zumkznkx he zote otzkxgizouty: g hgxoyzg igrrotm gt uxjkx cozn znkgzxoigr inkkx, gt urj jum mxkkzotm g lgsorogx tkomnhux, znk hxokl kdingtmk ul gt ashxkrrg rktz jaxotm g yajjkt yvxotqrk. Ynk zaiqkj znk tuzkhuuq otzu nkx hgm, vrkgykj zu ngbk igvzaxkj g lkc uxjotgxe lxgmsktzy ynk iuarj xkzaxt zu rgzkx.
+
