@@ -337,6 +337,7 @@ He znk zosk ynk rklz, znk ioze lkrz yzozinkj zumkznkx he zote otzkxgizouty: g hg
 ```
 
 ### Distribution of letters of the plain text
+
 | Letter | Count | Percentage |
 |--------|-------:|-----------:|
 | A      |     81 | 8.71% |
@@ -367,6 +368,7 @@ He znk zosk ynk rklz, znk ioze lkrz yzozinkj zumkznkx he zote otzkxgizouty: g hg
 | Z      |      0 | 0.00% |
 
 ### Distribution of letters of the encrypted text
+
 | Letter | Count | Percentage |
 |--------|------:|-----------:|
 | A      |    23 | 2.47% |
