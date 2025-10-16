@@ -271,3 +271,132 @@ Ynk yzgekj g rozzrk rutmkx, cgzinotm vkuvrk vgyy—gt ulloik cuxqkx hgrgtiotm g 
 
 He znk zosk ynk rklz, znk ioze lkrz yzozinkj zumkznkx he zote otzkxgizouty: g hgxoyzg igrrotm gt uxjkx cozn znkgzxoigr inkkx, gt urj jum mxkkzotm g lgsorogx tkomnhux, znk hxokl kdingtmk ul gt ashxkrrg rktz jaxotm g yajjkt yvxotqrk. Ynk zaiqkj znk tuzkhuuq otzu nkx hgm, vrkgykj zu ngbk igvzaxkj g lkc uxjotgxe lxgmsktzy ynk iuarj xkzaxt zu rgzkx.
 
+## Calculating the distributions of letters
+
+```html
+<!doctype html>
+<html>
+<body>
+
+<textarea id="input" rows="10" cols="60">Paste your text here...</textarea>
+<br>
+<button id="analyze">Analyze</button>
+
+<pre id="output"></pre>
+
+<script>
+  // Compute letter frequencies for ASCII A-Z (case-insensitive)
+  function computeFrequencies(text) {
+    const counts = {};
+    // initialize A..Z counts to zero
+    for (let i = 65; i <= 90; i++) counts[String.fromCharCode(i)] = 0;
+    let total = 0;
+
+    // fold to uppercase to be case-insensitive
+    const src = text.toUpperCase();
+    for (let i = 0; i < src.length; i++) {
+      const c = src[i];
+      if (c >= 'A' && c <= 'Z') {
+        counts[c] = counts[c] + 1;
+        total++;
+      }
+    }
+    return { counts, total };
+  }
+
+  // Render results into the <pre> element on the page
+  function renderResults(counts, total, outEl) {
+    const lines = [];
+    lines.push('Letter  Count  Percentage');
+    for (let i = 65; i <= 90; i++) {
+      const letter = String.fromCharCode(i);
+      const count = counts[letter] || 0;
+      const pct = total === 0 ? 0 : (count / total) * 100;
+      // simple aligned formatting
+      const padLetter = letter;
+      const padCount = String(count).padStart(5, ' ');
+      const padPct = pct.toFixed(2).padStart(8, ' ');
+      lines.push(padLetter + '      ' + padCount + '   ' + padPct + '%');
+    }
+    lines.push('');
+    lines.push('Total letters counted: ' + total);
+    outEl.textContent = lines.join('\n');
+  }
+
+  // Hook up UI
+  document.getElementById('analyze').addEventListener('click', function () {
+    const text = document.getElementById('input').value || '';
+    const { counts, total } = computeFrequencies(text);
+    const outEl = document.getElementById('output');
+    renderResults(counts, total, outEl);
+  });
+</script>
+
+</body>
+</html>
+```
+
+### Distribution of letters of the plain text
+| Letter | Count | Percentage |
+|--------|-------:|-----------:|
+| A      |     81 | 8.71% |
+| B      |     18 | 1.94% |
+| C      |     34 | 3.66% |
+| D      |     49 | 5.27% |
+| E      |    117 | 12.58% |
+| F      |     20 | 2.15% |
+| G      |     25 | 2.69% |
+| H      |     53 | 5.70% |
+| I      |     59 | 6.34% |
+| J      |      0 | 0.00% |
+| K      |      9 | 0.97% |
+| L      |     47 | 5.05% |
+| M      |     19 | 2.04% |
+| N      |     64 | 6.88% |
+| O      |     56 | 6.02% |
+| P      |     23 | 2.47% |
+| Q      |      0 | 0.00% |
+| R      |     58 | 6.24% |
+| S      |     53 | 5.70% |
+| T      |     90 | 9.68% |
+| U      |     23 | 2.47% |
+| V      |      4 | 0.43% |
+| W      |     15 | 1.61% |
+| X      |      2 | 0.22% |
+| Y      |     11 | 1.18% |
+| Z      |      0 | 0.00% |
+
+### Distribution of letters of the encrypted text
+| Letter | Count | Percentage |
+|--------|------:|-----------:|
+| A      |    23 | 2.47% |
+| B      |     4 | 0.43% |
+| C      |    15 | 1.61% |
+| D      |     2 | 0.22% |
+| E      |    11 | 1.18% |
+| F      |     0 | 0.00% |
+| G      |    81 | 8.71% |
+| H      |    18 | 1.94% |
+| I      |    34 | 3.66% |
+| J      |    49 | 5.27% |
+| K      |   117 | 12.58% |
+| L      |    20 | 2.15% |
+| M      |    25 | 2.69% |
+| N      |    53 | 5.70% |
+| O      |    59 | 6.34% |
+| P      |     0 | 0.00% |
+| Q      |     9 | 0.97% |
+| R      |    47 | 5.05% |
+| S      |    19 | 2.04% |
+| T      |    64 | 6.88% |
+| U      |    56 | 6.02% |
+| V      |    23 | 2.47% |
+| W      |     0 | 0.00% |
+| X      |    58 | 6.24% |
+| Y      |    53 | 5.70% |
+| Z      |    90 | 9.68% |
+
+
+### Conclsions
+Seeing the distributions of letters both of the plain text and the encrypted text we have discovered all the encrypted letters.
+By confronting the distributions of letters of the palin text and the encrypted text, we can assume that, seeing that the letter `E` (from the plain text) corresponds to the letter `K` (encrypted text), the ceasar text had a shift of 6.
