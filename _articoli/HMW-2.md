@@ -119,4 +119,24 @@ The tecnologies used in this part of the homework are MySQL Workbench (Oracle) f
 
 ## Distribution of ages
 
+Here, as you can see, i have used an interval of 5 years
+
 ![Age chart]({{ site.baseurl }}/assets/HMW1/ages_distribution.png)
+
+---
+
+## Distribution of heights
+
+For ages i have used, instead, an interval of 5 cm.
+
+![Height chart]({{ site.baseurl }}/assets/HMW1/heights_distribution.png)
+
+---
+
+## Distribution of weights
+
+Here, the interval is of 5 kilos.
+
+![Weight chart]({{ site.baseurl }}/assets/HMW1/weights_distribution.png)
+
+---
