@@ -216,5 +216,134 @@ By comparing it with the distribution of letters in an encripted text we can dec
 Here is the code (in JS) that does it:
 
 ```html
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Simple Naive RSA Frequency Decryptor</title>
+</head>
+<body>
+  <label for="cipher">Ciphertext:</label><br/>
+  <textarea id="cipher" rows="12" cols="80">OGI HERIHIB NPI RHNIN NGEMGY ELIR OGI QPHIO OEMI ZID OGI GHBGO NFRIZDN GHKI Z NEAO MZLI ZCRENN OGI REEAOEFN. FIEFGI AIBHI OE NOIF EPONHDI OGIHR GEPNIN MHOG NGIIFY IYIN ZID CZGH GIZRON. OGI ZHR AIIGN CEEG ZID BIIOGI MGHGI AHRDN NHIB HI NGERO APRNON OGZO NEPID GHKI OHIY AIGGN. ILIRY NORIIO NHIGGN AZHIOGY EA ARIZD ZID CEAAII ZID OGI MERGD NIIHN NHHFGI AER Z AIM QPHIO HHIPOIN AIAERI OGI RPNG EA OGI DZY AIBHIN.
+ZN OGI GEPRN HELI AERMZRD OGI OEMI AHGGN MHOG LEHCIN ZID AEEONOIFN OGZO AGIID HIOE EII GEIB AZHHGHZR RGYOGH. CGHGDRII GZPBG ZN OGIY RPI OE NCGEEG ZID EGD HII NHO EI AIICGIN OIGGHIB OGI NZHI NOERHIN ZBZHI ZID ZBZHI. OGI NEPID EA DEERN EFIIHIB ZID CGENHIB AICEHIN Z KHID EA HPNHC OGZO RIFIZON OGREPBG OGI DZY. HI OGINI ERDHIZRY HEHIION FIEFGI AHID CEHAERO AICZPNI IEOGHIB AIIGN NORZIBI ER AREKII MGII GHAI AEGGEMN HON BIIOGI FZOOIRI.
+MGII ILIIHIB ZRRHLIN OGI NKY OPRIN NEAO ZID BEGD ZID OGI MHID CZRRHIN OGI NHIGG EA AGEMIRN ZID RZHI. GHBGON ZFFIZR EII AY EII ZID OGI NORIION BREM NGEMIR ZID HERI FIZCIAPG. AZHHGHIN BZOGIR ZREPID OZAGIN MGHGI NHZGG NGEFN CGENI OGIHR DEERN ZID OGI OEMI NHBGN GHKI Z GHLHIB CRIZOPRI RIZDY AER RINO. IHBGO MHGG CEHI QPHIOGY ZID OGI CYCGI MHGG AIBHI ZBZHI JPNO ZN HO ZGMZYN DEIN CZGH ZID NOIZDY GHKI OGI AIZOHIB EA Z GIZRO.</textarea>
+  <br/>
+  <button id="decryptBtn">Decrypt (naive frequency)</button>
+  <br/><br/>
+  <label for="plain">Decrypted guess:</label><br/>
+  <textarea id="plain" rows="12" cols="80" readonly></textarea>
 
+  <script>
+    // ------------------------------
+    // Reference English letter frequencies
+    // ------------------------------
+    // These are the target percentage frequencies for letters in typical English text.
+    // They are used here only to rank plaintext letter likelihoods for a naive substitution:
+    //  - E is the most frequent (12.70%), then T, A, O, ... down to Z (0.07%).
+    // Note: This is a coarse statistical model (monogram frequencies) and is only
+    //       appropriate for very basic frequency substitution heuristics.
+    const ENGLISH_FREQ = {
+      'A': 8.17, 'B': 1.49, 'C': 2.78, 'D': 4.25, 'E': 12.70, 'F': 2.23, 'G': 2.02,
+      'H': 6.09, 'I': 6.97, 'J': 0.15, 'K': 0.77, 'L': 4.03, 'M': 2.41, 'N': 6.75,
+      'O': 7.51, 'P': 1.93, 'Q': 0.10, 'R': 5.99, 'S': 6.33, 'T': 9.06, 'U': 2.76,
+      'V': 0.98, 'W': 2.36, 'X': 0.15, 'Y': 1.97, 'Z': 0.07
+    };
+
+    // ENGLISH_ORDER is an array of letters sorted by descending frequency.
+    // We use this order to create a naive mapping: most frequent cipher letter -> 'E',
+    // second most frequent -> 'T', and so on.
+    const ENGLISH_ORDER = Object.keys(ENGLISH_FREQ).sort((a,b) => ENGLISH_FREQ[b] - ENGLISH_FREQ[a]);
+
+    // ------------------------------
+    // computeFrequencies(text)
+    // ------------------------------
+    // Count occurrences of each uppercase letter A–Z in the provided text.
+    // Returns an object { counts, total } where:
+    //  - counts is a map like { 'A': 12, 'B': 3, ... }
+    //  - total is the total number of letters counted (sum of counts)
+    //
+    // Notes:
+    //  - Non-letter characters (spaces, punctuation, digits) are ignored for the counts.
+    //  - Input is converted to uppercase to keep counting case-insensitive.
+    function computeFrequencies(text) {
+      const counts = {};
+      // initialize counts for A..Z to 0 for deterministic ordering later
+      for (let c = 65; c <= 90; c++) counts[String.fromCharCode(c)] = 0;
+      let total = 0;
+      for (const ch of text.toUpperCase()) {
+        // only consider ASCII letters A-Z
+        if (ch >= 'A' && ch <= 'Z') {
+          counts[ch] = (counts[ch] || 0) + 1;
+          total++;
+        }
+      }
+      return { counts, total };
+    }
+
+    // ------------------------------
+    // mappingByFrequency(countsObj)
+    // ------------------------------
+    // Build a naive substitution mapping from ciphertext letters to guessed plaintext letters.
+    // Steps:
+    // 1. Convert counts object into an array of [letter, count] entries.
+    // 2. Sort entries by descending count (most frequent cipher letter first).
+    //    - Tie-break by letter lexicographically for deterministic behavior.
+    // 3. For each cipher letter in that sorted list, assign the corresponding letter
+    //    from ENGLISH_ORDER (E, T, A, ...).
+    //
+    // Result is a mapping like { 'G': 'E', 'H': 'T', ... }.
+    function mappingByFrequency(countsObj) {
+      const entries = Object.entries(countsObj);
+      entries.sort((a,b) => {
+        if (b[1] === a[1]) return a[0].localeCompare(b[0]); // deterministic tie-break
+        return b[1] - a[1]; // descending by count
+      });
+      const mapping = {};
+      for (let i = 0; i < entries.length; i++) {
+        const cipher = entries[i][0];
+        // Map the i-th most frequent cipher letter to the i-th most frequent English letter.
+        // If ENGLISH_ORDER runs out (shouldn't happen here), fallback to '?'.
+        mapping[cipher] = ENGLISH_ORDER[i] || '?';
+      }
+      return mapping;
+    }
+
+    // ------------------------------
+    // applyMapping(text, mapping)
+    // ------------------------------
+    // Apply the substitution mapping to the input text.
+    // - Non-letter characters (spaces, punctuation) are preserved.
+    // - Letters are converted to uppercase, mapped, and the mapped letter is appended.
+
+    function applyMapping(text, mapping) {
+      let out = '';
+      for (const ch of text) {
+        const up = ch.toUpperCase();
+        if (up >= 'A' && up <= 'Z') {
+          // If a mapping for this cipher letter exists, use it; otherwise use '?'.
+          const mapped = mapping[up] || '?';
+          out += mapped;
+        } else {
+          // Preserve spaces, punctuation, line breaks, etc.
+          out += ch;
+        }
+      }
+      return out;
+    }
+    document.getElementById('decryptBtn').addEventListener('click', () => {
+      const cipher = document.getElementById('cipher').value || '';
+      const { counts } = computeFrequencies(cipher);   // get letter counts
+      const mapping = mappingByFrequency(counts);      // create naive mapping
+      const plainGuess = applyMapping(cipher, mapping); // apply substitution
+      document.getElementById('plain').value = plainGuess; // show result
+    });
+
+    // ------------------------------
+    // Auto-run once on load to show an initial guess immediately
+    // ------------------------------
+    document.getElementById('decryptBtn').click();
+  </script>
+</body>
+</html>
 ```
