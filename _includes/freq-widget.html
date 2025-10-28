@@ -1,0 +1,226 @@
+<style>
+  :root{ --bg:#ffffff; --text:#032b5c; --muted:#4b6b8a; }
+  html,body{ margin:0; font-family:system-ui, -apple-system, "Segoe UI", Roboto, Arial; background:var(--bg); color:var(--text); }
+  .wrap{ max-width:980px; margin:20px auto; padding:12px; }
+  .card{ background:#f8fbff; border-radius:8px; padding:12px; }
+  .controls{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:10px 0; }
+  label{ font-size:13px; color:var(--muted); }
+  input[type=number]{ padding:6px 8px; border-radius:6px; border:1px solid #e6eefc; }
+  button{ padding:7px 10px; border-radius:6px; border:0; background:var(--text); color:#fff; cursor:pointer; }
+  canvas{ width:100%; height:520px; margin-top:8px; border-radius:6px; background:linear-gradient(180deg,#ffffff,#f1f7ff); display:block; }
+  .info{ margin-top:8px; font-size:13px; color:var(--muted); }
+</style>
+
+<div class="wrap">
+  <div class="card">
+    <h3>Empirical frequencies — mean + spread</h3>
+    <p class="info">Main plot: mean f(t) and 10%-90% band. Histogram of f(N) below.</p>
+
+    <div class="controls">
+      <label for="N">Trials (N)</label>
+      <input id="N" type="number" min="1" max="2000" value="30">
+
+      <label for="paths">Paths</label>
+      <input id="paths" type="number" min="1" max="2000" value="30">
+
+      <label for="p">p</label>
+      <input id="p" type="number" min="0" max="1" step="0.01" value="0.5">
+
+      <button id="run">Run</button>
+      <button id="clear">Clear</button>
+    </div>
+
+    <canvas id="plot"></canvas>
+    <div id="info" class="info">Ready.</div>
+  </div>
+</div>
+
+<script>
+  function bernoulli(p) { return Math.random() < p ? 1 : 0; }
+
+  function simulatePath(N, p) {
+    const f = new Array(N + 1);
+    let sum = 0;
+    f[0] = 0;
+    for (let t = 1; t <= N; t++) {
+      sum += bernoulli(p);
+      f[t] = sum / t;
+    }
+    return f;
+  }
+
+  function quantile(sortedArr, q) {
+    if (sortedArr.length === 0) return 0;
+    const idx = q * (sortedArr.length - 1);
+    const lo = Math.floor(idx);
+    const hi = Math.ceil(idx);
+    if (lo === hi) return sortedArr[lo];
+    const w = idx - lo;
+    return sortedArr[lo] * (1 - w) + sortedArr[hi] * w;
+  }
+
+  const canvas = document.getElementById('plot');
+  const ctx = canvas.getContext('2d');
+
+  function resizeCanvas() {
+    const cssW = canvas.clientWidth;
+    const cssH = 520;
+    const ratio = window.devicePixelRatio || 1;
+    canvas.width = Math.round(cssW * ratio);
+    canvas.height = Math.round(cssH * ratio);
+    canvas.style.height = cssH + 'px';
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+  function layout(N) {
+    const W = canvas.clientWidth;
+    const H = 520;
+    const histH = Math.floor(H * 0.22);
+    const mainH = H - histH - 12;
+    const margins = { left: 50, right: 20, top: 30, bottom: 30 };
+    return {
+      main: { x: 0, y: 0, w: W, h: mainH, m: margins },
+      hist: { x: 0, y: mainH + 12, w: W, h: histH, m: { left: 50, right: 20, top: 10, bottom: 20 } }
+    };
+  }
+
+  function drawMainAxes(main, N) {
+    const w = main.w, h = main.h, m = main.m;
+    ctx.strokeStyle = '#e6eefc';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+      const yy = m.top + (h - m.top - m.bottom) * i / 4;
+      ctx.beginPath(); ctx.moveTo(m.left, yy); ctx.lineTo(m.left + (w - m.left - m.right), yy); ctx.stroke();
+    }
+    ctx.strokeStyle = '#a9c2f7'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(m.left, m.top); ctx.lineTo(m.left, h - m.bottom); ctx.lineTo(m.left + (w - m.left - m.right), h - m.bottom); ctx.stroke();
+
+    ctx.fillStyle = '#032b5c'; ctx.font = '12px system-ui';
+    ctx.fillText('Trials →', m.left + (w - m.left - m.right) - 60, h - m.bottom + 18);
+    ctx.fillText('Relative freq', m.left - 44, m.top + 10);
+
+    for (let i=0;i<=4;i++){
+      const val = (1 - i/4).toFixed(2);
+      const yy = m.top + (h - m.top - m.bottom) * i / 4;
+      ctx.fillText(val, m.left - 44, yy + 4);
+    }
+    const xs = [0, Math.floor(N/4), Math.floor(N/2), Math.floor(3*N/4), N];
+    for (const xi of xs){
+      const xx = m.left + (w - m.left - m.right) * (xi / N);
+      ctx.fillText(String(xi), xx - 8, h - m.bottom + 18);
+    }
+  }
+
+  function makeMapper(main, N) {
+    const w = main.w, h = main.h, m = main.m;
+    return {
+      x: (t) => m.left + (w - m.left - m.right) * (t / N),
+      y: (val) => m.top + (h - m.top - m.bottom) * (1 - val)
+    };
+  }
+
+  function drawMeanAndBand(map, meanArr, qLowArr, qHighArr) {
+    ctx.beginPath();
+    ctx.moveTo(map.x(0), map.y(qHighArr[0]));
+    for (let t = 1; t < meanArr.length; t++) {
+      ctx.lineTo(map.x(t), map.y(qHighArr[t]));
+    }
+    for (let t = meanArr.length - 1; t >= 0; t--) {
+      ctx.lineTo(map.x(t), map.y(qLowArr[t]));
+    }
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(20,110,230,0.12)';
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(20,110,230,1)';
+    ctx.lineWidth = 2;
+    ctx.moveTo(map.x(0), map.y(meanArr[0]));
+    for (let t = 1; t < meanArr.length; t++) ctx.lineTo(map.x(t), map.y(meanArr[t]));
+    ctx.stroke();
+  }
+
+  function drawHistogram(histArea, finals, bins=30) {
+    const hm = histArea.m;
+    const innerW = histArea.w - hm.left - hm.right;
+    const innerH = histArea.h - hm.top - hm.bottom;
+    const counts = new Array(bins).fill(0);
+    for (const v of finals) {
+      const clamped = Math.max(0, Math.min(1, v));
+      const bin = Math.min(bins - 1, Math.floor(clamped * bins));
+      counts[bin]++;
+    }
+    const maxCount = Math.max(...counts, 1);
+    const barWUnit = innerW / (bins);
+    for (let b = 0; b < bins; b++) {
+      const cnt = counts[b];
+      if (cnt === 0) continue;
+      const x = hm.left + histArea.x + b * barWUnit;
+      const barH = (cnt / maxCount) * (innerH - 8);
+      ctx.fillStyle = 'rgba(220,40,40,0.9)';
+      ctx.fillRect(x + 2, histArea.y + hm.top + innerH - barH, Math.max(1, barWUnit - 4), barH);
+    }
+    ctx.fillStyle = '#032b5c'; ctx.font = '11px system-ui';
+    for (let i = 0; i <= 4; i++) {
+      const frac = i / 4;
+      const x = histArea.x + hm.left + frac * innerW;
+      ctx.fillText((frac).toFixed(2), x - 10, histArea.y + histArea.h - 4);
+    }
+  }
+
+  function runSimulation(N, paths, p) {
+    resizeCanvas();
+    clearCanvas();
+
+    const all = new Array(paths);
+    for (let i = 0; i < paths; i++) all[i] = simulatePath(N, p);
+
+    const meanArr = new Array(N + 1);
+    const qLowArr = new Array(N + 1);
+    const qHighArr = new Array(N + 1);
+
+    for (let t = 0; t <= N; t++) {
+      const vals = new Array(paths);
+      for (let i = 0; i < paths; i++) vals[i] = all[i][t];
+      vals.sort((a,b) => a - b);
+      const sum = vals.reduce((a,b)=>a+b,0);
+      meanArr[t] = sum / vals.length;
+      qLowArr[t] = quantile(vals, 0.10);
+      qHighArr[t] = quantile(vals, 0.90);
+    }
+
+    const L = layout(N);
+    drawMainAxes(L.main, N);
+    const map = makeMapper(L.main, N);
+
+    ctx.save();
+    ctx.strokeStyle = 'rgba(20,110,230,1)'; ctx.lineWidth = 1.8; ctx.setLineDash([6,4]);
+    ctx.beginPath(); ctx.moveTo(map.x(0), map.y(p)); ctx.lineTo(map.x(N), map.y(p)); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
+
+    drawMeanAndBand(map, meanArr, qLowArr, qHighArr);
+
+    const finals = all.map(a => a[N]);
+    drawHistogram(L.hist, finals, 36);
+
+    const empiricalMean = finals.reduce((a,b)=>a+b,0)/finals.length;
+    document.getElementById('info').textContent = `Paths: ${paths}, Trials: ${N}, p: ${p.toFixed(3)} — empirical mean f(N): ${empiricalMean.toFixed(4)}`;
+  }
+
+  document.getElementById('run').addEventListener('click', function () {
+    const N = Math.max(1, Math.min(2000, parseInt(document.getElementById('N').value) || 200));
+    const paths = Math.max(1, Math.min(2000, parseInt(document.getElementById('paths').value) || 200));
+    const p = Math.max(0, Math.min(1, parseFloat(document.getElementById('p').value) || 0.5));
+    document.getElementById('info').textContent = 'Running...';
+    runSimulation(N, paths, p);
+  });
+
+  document.getElementById('clear').addEventListener('click', function () {
+    clearCanvas();
+    document.getElementById('info').textContent = 'Cleared.';
+  });
+</script>
