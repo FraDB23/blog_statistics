@@ -13,7 +13,7 @@ permalink: /articoli/HMW-4/
 ---
 
 #  Law of Large Numbers (LLN) using a bernoulli variable
-
+<div>
 <title>Empirical frequencies</title>
   <style>
     :root{ --bg:#ffffff; --text:#032b5c; --muted:#4b6b8a; }
@@ -276,6 +276,7 @@ permalink: /articoli/HMW-4/
     });
 
   </script>
+</div>
 
 ## Code
 
