@@ -12,8 +12,10 @@ permalink: /articoli/HMW-4/
 
 ---
 
+{% raw %}
+
 #  Law of Large Numbers (LLN) using a bernoulli variable
-<div>
+
   <style>
     :root{ --bg:#ffffff; --text:#032b5c; --muted:#4b6b8a; }
     html,body{ margin:0; font-family:system-ui, -apple-system, "Segoe UI", Roboto, Arial; background:var(--bg); color:var(--text); }
@@ -49,7 +51,6 @@ permalink: /articoli/HMW-4/
       <div id="info" class="info">Ready.</div>
     </div>
   </div>
-</div>
 
   <script>
 
@@ -276,11 +277,12 @@ permalink: /articoli/HMW-4/
 
   </script>
 
+{% endraw %}
+
+
 
 
 ## Code
-
-{% raw %}
 
 ```html
 <!doctype html>
@@ -554,8 +556,6 @@ permalink: /articoli/HMW-4/
 </body>
 </html>
 ```
-
-{% endraw %}
 
 ### Overview
 The page implements an interactive simulation of empirical (relative) frequencies for Bernoulli trials (success/failure experiments). It simulates several independent sample paths of repeated Bernoulli trials with probability `p` of success, computes per-time averages and quantile bands across simulated paths, and visualizes:
