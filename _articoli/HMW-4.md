@@ -278,7 +278,11 @@ permalink: /articoli/HMW-4/
   </script>
 </div>
 
+
+
 ## Code
+
+{% raw %}
 
 ```html
 <!doctype html>
@@ -553,6 +557,8 @@ permalink: /articoli/HMW-4/
 </html>
 ```
 
+{% endraw %}
+
 ### Overview
 The page implements an interactive simulation of empirical (relative) frequencies for Bernoulli trials (success/failure experiments). It simulates several independent sample paths of repeated Bernoulli trials with probability `p` of success, computes per-time averages and quantile bands across simulated paths, and visualizes:
 - the **mean empirical frequency** \(f(t)\) at each trial number `t` (the average across all simulated paths), and
@@ -633,5 +639,3 @@ The central function that executes the simulation and triggers drawing:
 ### Notes 
 
 - **Statistical behavior**: As `N` grows, each path's `f(t)` tends (by the Law of Large Numbers) to concentrate near `p`. The 10%–90% band should shrink with increasing `t` (for fixed `paths`) and the histogram of `f(N)` becomes more tightly clustered around `p` on average.
-
----
