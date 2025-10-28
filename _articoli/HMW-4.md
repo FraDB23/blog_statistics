@@ -14,7 +14,6 @@ permalink: /articoli/HMW-4/
 
 #  Law of Large Numbers (LLN) using a bernoulli variable
 <div>
-<title>Empirical frequencies</title>
   <style>
     :root{ --bg:#ffffff; --text:#032b5c; --muted:#4b6b8a; }
     html,body{ margin:0; font-family:system-ui, -apple-system, "Segoe UI", Roboto, Arial; background:var(--bg); color:var(--text); }
@@ -30,7 +29,6 @@ permalink: /articoli/HMW-4/
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>Empirical frequencies — mean + spread</h1>
       <p class="info">Main plot: mean f(t) and 10%-90% band. Histogram of f(N) below.</p>
 
       <div class="controls">
@@ -51,6 +49,7 @@ permalink: /articoli/HMW-4/
       <div id="info" class="info">Ready.</div>
     </div>
   </div>
+</div>
 
   <script>
 
@@ -276,7 +275,6 @@ permalink: /articoli/HMW-4/
     });
 
   </script>
-</div>
 
 
 
