@@ -280,7 +280,7 @@ permalink: /articoli/HMW-4/
 {% endraw %}
 
 
-
+{% raw %}
 
 ## Code
 
@@ -556,6 +556,9 @@ permalink: /articoli/HMW-4/
 </body>
 </html>
 ```
+
+
+{% endraw %}
 
 ### Overview
 The page implements an interactive simulation of empirical (relative) frequencies for Bernoulli trials (success/failure experiments). It simulates several independent sample paths of repeated Bernoulli trials with probability `p` of success, computes per-time averages and quantile bands across simulated paths, and visualizes:
