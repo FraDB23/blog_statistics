@@ -139,5 +139,3 @@ After selecting a center, spread quantifies deviations around it.
 | Coefficient of variation (CV) | `CV = SD / x̄` | Compare relative variability across scales |
 | Mean absolute deviation (MAD) | `MAD = (1/n) sum (x_i - x̄)` | More interpretable/robust alternative to variance |
 | Quadratic mean (RMS) | `sqrt((1/n) sum x_i^2)` | Emphasizes large values; used in physics/signal processing |
-
-If preferred, worked numerical examples can be added as a second compact table (one row per example).
