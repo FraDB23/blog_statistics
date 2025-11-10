@@ -22,7 +22,7 @@ In this homwork i will implement and test the corresponding online algorithms, w
 
 ---
 
-# Algorithm
+## Algorithm
 
 ```html
 
@@ -32,5 +32,5 @@ In this homwork i will implement and test the corresponding online algorithms, w
 
 ---
 
-# Explanation of the algorithm
+## Explanation of the algorithm
 
