@@ -11,3 +11,4 @@ permalink: /articoli/
 - [Homework 5](/blog_statistics/articoli/HMW-5/)
 - [Homework 6](/blog_statistics/articoli/HMW-6/)
 - [Homework 7](/blog_statistics/articoli/HMW-7/)
+- [Homework 8](/blog_statistics/articoli/HMW-8/)
