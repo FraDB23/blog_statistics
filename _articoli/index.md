@@ -10,3 +10,4 @@ permalink: /articoli/
 - [Homework 4](/blog_statistics/articoli/HMW-4/)
 - [Homework 5](/blog_statistics/articoli/HMW-5/)
 - [Homework 6](/blog_statistics/articoli/HMW-6/)
+- [Homework 7](/blog_statistics/articoli/HMW-7/)

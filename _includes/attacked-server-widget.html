@@ -1,0 +1,90 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body{font-family:system-ui,Arial;margin:12px;color:#111}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.control{display:flex;flex-direction:column;font-size:13px}
+input[type=number],input[type=text],button{padding:6px;border-radius:6px;border:1px solid #ccc}
+button{background:#2563eb;color:#fff;border:none;cursor:pointer}
+.card{border:1px solid #e6e6e6;padding:10px;border-radius:8px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.03)}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+canvas{background:#fff}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td,th{padding:6px;border-bottom:1px solid #eee;text-align:left}
+.small{font-size:12px;color:#555}
+</style>
+
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <strong>HMW — Server security random walk</strong>
+      <div class="small">+1 secure week, -1 breached week. Weekly secure prob q=(1-p)^m</div>
+    </div>
+    <button id="run">Run</button>
+  </div>
+
+  <div class="controls" style="margin-top:8px">
+    <div class="control"><label>n weeks</label><input id="n" type="number" value="20" min="1"></div>
+    <div class="control"><label>m attackers</label><input id="m" type="number" value="3" min="1"></div>
+    <div class="control"><label>p attacker</label><input id="p" type="text" value="0.1"></div>
+    <div class="control"><label>simulations</label><input id="S" type="number" value="5000" min="1"></div>
+    <div class="control"><label>sample traj</label><input id="K" type="number" value="20" min="0"></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="card" style="flex:1 1 540px">
+    <h4 style="margin:6px 0">Final distribution</h4>
+    <canvas id="hist" height="220"></canvas>
+    <div id="info" class="small" style="margin-top:6px"></div>
+  </div>
+
+  <div class="card" style="flex:1 1 360px">
+    <h4 style="margin:6px 0">Sample trajectories</h4>
+    <canvas id="traj" height="220"></canvas>
+  </div>
+</div>
+
+<div id="tableWrap" class="card"></div>
+
+<script>
+const $=(id)=>document.getElementById(id);
+function pmf(n,k,p){if(k<0||k>n)return 0;if(p===0)return k===0?1:0;if(p===1)return k===n?1:0;let c=1,kk=Math.min(k,n-k);for(let i=1;i<=kk;i++){c*=n-(kk-i);c/=i;}return c*Math.pow(p,k)*Math.pow(1-p,n-k)}
+function sim(n,m,p,S,K){
+  const q=Math.pow(1-p,m),bp=1-q,counts=Array(n+1).fill(0),samps=[];
+  for(let s=0;s<S;s++){
+    let c=0,arr=[0];
+    for(let i=0;i<n;i++){const breached=Math.random()<bp;c+=breached?-1:1; if(s<K) arr.push(c)}
+    const k=(n+c)/2; if(k>=0&&k<=n) counts[k]++; if(s<K) samps.push(arr);
+  }
+  return {q,bp,counts,samps};
+}
+let H=null, T=null;
+function draw(){
+  const n=+$('n').value, m=+$('m').value, p=parseFloat($('p').value)||0, S=+$('S').value, K=+$('K').value;
+  if(n<1||m<1||S<1){alert('n>0,m>=1,S>=1');return}
+  const r=sim(n,m,p,S,K),labels=[],emp=r.counts,exp=Array(n+1).fill(0);
+  for(let k=0;k<=n;k++){labels.push(2*k-n); exp[k]=S*pmf(n,k,r.q)}
+  const empProb=emp.map(x=>x/S),expProb=exp.map(x=>x/S);
+  let l1=0; for(let i=0;i<empProb.length;i++) l1+=Math.abs(empProb[i]-expProb[i]);
+
+  const ctx=document.getElementById('hist').getContext('2d');
+  if(!H) H=new Chart(ctx,{type:'bar',data:{labels:labels,datasets:[{label:'emp',data:emp},{label:'theor',type:'line',data:exp,fill:false}]},options:{plugins:{legend:{position:'top'}}}});
+  else{H.data.labels=labels;H.data.datasets[0].data=emp;H.data.datasets[1].data=exp;H.update()}
+
+  const c2=document.getElementById('traj').getContext('2d');
+  if(!T) T=new Chart(c2,{type:'line',data:{labels:Array.from({length:n+1},(_,i)=>i),datasets:[]},options:{plugins:{legend:{display:false}}}});
+  T.data.datasets=r.samps.map((a,i)=>({label:'t'+i,data:a,pointRadius:0,fill:false,borderWidth:1}));T.update();
+
+  $('info').innerHTML=`n=${n} m=${m} p=${p.toFixed(4)} q=${r.q.toFixed(5)} breach=${r.bp.toFixed(5)} L1=${l1.toFixed(6)}`;
+
+  let html='<table><thead><tr><th>T</th><th>k</th><th>obs</th><th>exp</th><th>obsP</th><th>expP</th></tr></thead><tbody>';
+  for(let k=0;k<=n;k++){
+    const T=2*k-n,obs=emp[k],e=exp[k];
+    html+=`<tr><td>${T}</td><td>${k}</td><td>${obs}</td><td>${e.toFixed(3)}</td><td>${(obs/S).toFixed(5)}</td><td>${(e/S).toFixed(5)}</td></tr>`;
+  }
+  html+='</tbody></table>';
+  $('tableWrap').innerHTML=html;
+}
+$('run').addEventListener('click',draw);
+window.addEventListener('load',draw);
+</script>
