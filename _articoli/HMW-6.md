@@ -11,3 +11,26 @@ permalink: /articoli/HMW-6/
 **Academic Year:** {{ site.academic_year }}
 
 ---
+
+# Online algorithms for statistics
+
+In this homwork i will implement and test the corresponding online algorithms, which update statistics incrementally as new data becomes available.
+
+---
+
+{% include online-statistics-widget.html %}
+
+---
+
+# Algorithm
+
+```html
+
+{% include online-statistics-widget.html %}
+
+```
+
+---
+
+# Explanation of the algorithm
+

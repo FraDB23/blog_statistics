@@ -1,0 +1,131 @@
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:20px;color:#111}
+    .box{max-width:760px;margin:0 auto}
+    label{display:block;margin-top:10px}
+    input{padding:6px;width:100%;box-sizing:border-box}
+    button{margin-top:8px;padding:8px 10px;border:none;border-radius:6px;background:#2563eb;color:white;cursor:pointer}
+    pre{background:#f7f7f7;padding:10px;border-radius:6px;white-space:pre-wrap}
+  </style>
+</head>
+<body>
+  <div class="box">
+
+    <label>Value (number)</label>
+    <input id="valueInput" type="number" step="any" />
+    <button id="addBtn">Add value</button>
+    <button id="resetBtn" style="background:#6b7280">Reset</button>
+
+    <h3>Statistics</h3>
+    <pre id="stats">No data yet.</pre>
+
+    <h3>Log (latest on top)</h3>
+    <pre id="log">--</pre>
+  </div>
+
+  <script>
+    // --- Online statistics class (Welford algorithm for variance) ---
+    class OnlineStats {
+      constructor(){ this.reset(); }
+      reset(){ this.n = 0; this.mean = 0; this.M2 = 0; this.sum = 0; this.min = Infinity; this.max = -Infinity; }
+      // Add a single new value incrementally
+      add(x){
+        this.n += 1;
+        this.sum += x;
+        if (x < this.min) this.min = x;
+        if (x > this.max) this.max = x;
+        const delta = x - this.mean;
+        this.mean += delta / this.n;
+        const delta2 = x - this.mean;
+        this.M2 += delta * delta2; // numerically stable update
+      }
+      count(){ return this.n }
+      meanValue(){ return this.n ? this.mean : NaN }
+      // sample variance
+      variance(){ return this.n > 1 ? this.M2 / (this.n - 1) : NaN }
+      std(){ const v = this.variance(); return isNaN(v) ? NaN : Math.sqrt(v) }
+    }
+
+    // --- Simple median: use two arrays (low and high) ---
+    // For clarity we use arrays and simple operations. This is not the most
+    // efficient way, but it’s readable and keeps the online property.
+    class SimpleMedian {
+      constructor(){ this.low = []; this.high = []; }
+      reset(){ this.low = []; this.high = []; }
+      add(x){
+        // decide which side to insert into
+        if (this.low.length === 0 || x <= Math.max(...this.low)) this.low.push(x);
+        else this.high.push(x);
+        // rebalance: difference in size must be at most 1
+        if (this.low.length - this.high.length > 1) this.high.push(this.low.shift());
+        if (this.high.length - this.low.length > 1) this.low.push(this.high.shift());
+      }
+      median(){
+        const nl = this.low.length, nh = this.high.length;
+        if (nl + nh === 0) return NaN;
+        if (nl === nh) {
+          return (Math.max(...this.low) + Math.min(...this.high)) / 2;
+        }
+        return nl > nh ? Math.max(...this.low) : Math.min(...this.high);
+      }
+    }
+
+    // --- Incremental linear regression (covariance and variance) ---
+    // We keep running means and C = sum((x-meanX)*(y-meanY)) for covariance.
+    class OnlineLinearRegression {
+      constructor(){ this.reset(); }
+      reset(){ this.n = 0; this.meanX = 0; this.meanY = 0; this.C = 0; this.M2x = 0; }
+      add(x,y){
+        this.n += 1;
+        const dx = x - this.meanX;
+        this.meanX += dx / this.n;
+        const dy = y - this.meanY;
+        this.meanY += dy / this.n;
+        this.C += dx * (y - this.meanY); // stable covariance accumulator
+        this.M2x += dx * (x - this.meanX); // variance of X
+      }
+      slope(){ return (this.n > 1) ? (this.C / (this.n - 1)) / (this.M2x / (this.n - 1)) : NaN }
+      intercept(){ return isNaN(this.slope()) ? NaN : this.meanY - this.slope() * this.meanX }
+      covariance(){ return this.n > 1 ? this.C / (this.n -1) : NaN }
+    }
+
+    // --- Application state ---
+    const stats = new OnlineStats();
+    const median = new SimpleMedian();
+    const logEl = document.getElementById('log');
+    const statsEl = document.getElementById('stats');
+
+    function pretty(v){ if (v === undefined || v === null) return '-'; if (Number.isNaN(v)) return 'NaN'; if (!isFinite(v)) return v.toString(); return Math.round(v*1e6)/1e6; }
+
+    function render(){
+      const lines = [];
+      lines.push('Count: ' + stats.count());
+      lines.push('Sum: ' + pretty(stats.sum));
+      lines.push('Mean: ' + pretty(stats.meanValue()));
+      lines.push('Variance (sample): ' + pretty(stats.variance()));
+      lines.push('Std (sample): ' + pretty(stats.std()));
+      lines.push('Min: ' + pretty(stats.min));
+      lines.push('Max: ' + pretty(stats.max));
+      lines.push('Median (online): ' + pretty(median.median()));
+      statsEl.textContent = lines.join('\n');
+    }
+
+    function writeLog(s){ logEl.textContent = s + '\n' + logEl.textContent }
+
+    // --- UI events ---
+    document.getElementById('addBtn').addEventListener('click', ()=>{
+      const v = parseFloat(document.getElementById('valueInput').value);
+      if (Number.isNaN(v)) { alert('Enter a valid number'); return; }
+      stats.add(v);
+      median.add(v);
+      render();
+      writeLog('Added: ' + v);
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', ()=>{
+      stats.reset(); median.reset(); document.getElementById('valueInput').value = '';
+      render(); logEl.textContent = '--'; writeLog('Reset done');
+    });
+
+    // initialize display
+    render();
+  </script>
