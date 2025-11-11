@@ -30,10 +30,20 @@ Given a server that receives weekly security updates for n weeks and m attackers
 
 ### Explanation
 
-- Each week: **secure** (+1) or **breached** (−1). Weekly breach probability:
-  \[\text{breachProb} = 1 - (1-p)^m\]
-  weekly secure probability: \(q=(1-p)^m\).
-- Let \(S\) = number of secure weeks in \(n\) weeks: \(S\sim\mathrm{Binomial}(n,q)\).
-- Final cumulative score: \(T = 2S - n\) (values: \(-n,-n+2,\dots,n\)).
-- Simulation: run many independent trajectories, count final scores (histogram). Compare empirical frequencies to theoretical expected counts: `simulations * BinomialPMF(n,k,q)`.
-- Convergence metric: L1 distance between empirical and theoretical probabilities: \(\sum_k |\hat p_k - p_k|\).
+- Each week: **secure (+1)** or **breached (−1)**.  
+  - Weekly breach probability: `breachProb = 1 - (1 - p)^m`  
+  - Weekly secure probability: `q = (1 - p)^m`
+
+- Let `S` = number of secure weeks in `n` weeks  
+  → `S ~ Binomial(n, q)`
+
+- Final cumulative score: `T = 2*S - n`  
+  (possible values: `-n, -n+2, ..., n`)
+
+- Simulation:  
+  Run many independent trajectories, count final scores (histogram).  
+  Compare empirical frequencies to theoretical expected counts:  
+  `expected = simulations * BinomialPMF(n, k, q)`
+
+- Convergence metric:  
+  `L1 = sum(|p_empirical[k] - p_theoretical[k]| for k in all outcomes)`
