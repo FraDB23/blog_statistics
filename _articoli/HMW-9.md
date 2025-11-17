@@ -82,5 +82,3 @@ This works because adding P(A) and P(B) counts the overlap twice; subtracting P(
 ## 5. Conclusion
 
 The main interpretations of probability each provide useful perspectives, but they can clash conceptually. The axiomatic approach gives a unified, consistent foundation. Measure theory connects probability with rigorous mathematical tools, making it suitable for continuous models and random variables. Finally, standard results like subadditivity and inclusion–exclusion follow directly from the axioms, reinforcing the internal consistency of the framework.
-
-

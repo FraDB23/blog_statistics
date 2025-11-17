@@ -1,0 +1,131 @@
+<div id="pp-sim">
+  <!-- Simple UI -->
+  <label>λ (rate per unit time): <input id="lambda" type="number" step="0.1" value="3"></label>
+  <label>T (time interval): <input id="T" type="number" step="0.1" value="1"></label>
+  <label>n (subintervals): <input id="n" type="number" value="5000"></label>
+  <button id="run">Simulate</button>
+
+  <pre id="results" style="white-space:pre-wrap; margin-top:10px;"></pre>
+</div>
+
+<script>
+
+/* ===== Poisson-process approximation simulation =====
+   Idea:
+   - Divide [0, T] into n equal subintervals.
+   - In each subinterval generate an event with probability (λ * T) / n.
+   - Place event uniformly inside subinterval to get event time.
+   - The procedure approximates a Poisson process with rate λ
+     when n is large and pPerInterval = λT/n is small.
+================================================================= */
+
+// get DOM elements
+const runBtn = document.getElementById('run');
+const out = document.getElementById('results');
+
+// run simulation on button click
+runBtn.addEventListener('click', function () {
+  // read inputs and coerce to numbers
+  const lambda = Number(document.getElementById('lambda').value); // rate per unit time
+  const T = Number(document.getElementById('T').value);           // total time interval
+  const nInput = Number(document.getElementById('n').value);
+  const n = Math.max(1, Math.floor(isNaN(nInput) ? 1 : nInput)); // ensure integer >= 1
+
+  // basic validation
+  if (isNaN(lambda) || isNaN(T) || isNaN(n)) {
+    out.textContent = 'Invalid input. Use numeric values for λ, T, and n.';
+    return;
+  }
+  if (lambda < 0 || T <= 0) {
+    out.textContent = 'Please use λ >= 0 and T > 0.';
+    return;
+  }
+
+  // probability of event in each subinterval:
+  // each subinterval has length T/n, so p = λ * (T/n) = (λT)/n
+  const pPerInterval = (lambda * T) / n;
+
+  // warn if approximation may be poor
+  const warnings = [];
+  if (pPerInterval > 0.1) {
+    warnings.push('Warning: p per interval > 0.1 — increase n for better approximation.');
+  }
+  if (pPerInterval > 1) {
+    warnings.push('Warning: p per interval > 1 — impossible. Decrease λ or increase n.');
+  }
+
+  // simulate events: Bernoulli for each subinterval
+  const eventTimes = []; // store event times inside [0,T]
+  const dt = T / n;      // length of each small subinterval
+
+  for (let i = 0; i < n; i++) {
+    // independent trial with probability pPerInterval
+    if (Math.random() < pPerInterval) {
+      // place event uniformly inside the small subinterval
+      const start = i * dt;
+      const tEvent = start + Math.random() * dt;
+      eventTimes.push(tEvent);
+    }
+  }
+
+  // compute simple statistics
+  const count = eventTimes.length;
+  const theoreticalMean = lambda * T; // Poisson(λT) mean
+  const theoreticalVar = lambda * T;  // Poisson(λT) variance
+
+  // interarrival times (if enough events)
+  let interarrivals = [];
+  if (eventTimes.length > 1) {
+    eventTimes.sort((a, b) => a - b); // ensure order
+    for (let i = 1; i < eventTimes.length; i++) {
+      interarrivals.push(eventTimes[i] - eventTimes[i - 1]);
+    }
+  }
+  const meanIA = interarrivals.length > 0
+    ? interarrivals.reduce((s, v) => s + v, 0) / interarrivals.length
+    : NaN;
+
+  // prepare output text
+  const lines = [];
+  lines.push('Simulation summary:');
+  lines.push(` - λ = ${lambda}`);
+  lines.push(` - T = ${T}`);
+  lines.push(` - n = ${n}`);
+  lines.push(` - p per small interval = ${pPerInterval.toPrecision(4)}`);
+  lines.push('');
+  lines.push('Results:');
+  lines.push(` - Observed count in [0,T]: ${count}`);
+  lines.push(` - Theoretical mean (λT): ${theoreticalMean}`);
+  lines.push(` - Theoretical variance (λT): ${theoreticalVar}`);
+  if (!isNaN(meanIA)) {
+    lines.push(` - Sample mean interarrival time: ${meanIA.toPrecision(4)}`);
+    lines.push(` - Expected interarrival mean (1/λ): ${lambda > 0 ? (1 / lambda).toPrecision(4) : '∞'}`);
+  } else {
+    lines.push(' - Not enough events to estimate interarrival times.');
+  }
+  if (warnings.length) {
+    lines.push('');
+    lines.push('Notes:');
+    warnings.forEach(w => lines.push(` - ${w}`));
+  }
+
+  lines.push('');
+  lines.push('What process is approximated?');
+  lines.push(' - This approximates a Poisson process with rate λ in the limit n → ∞ and p small.');
+  lines.push('');
+  lines.push('Key theoretical properties:');
+  lines.push(' - Independent increments: counts on disjoint intervals are independent.');
+  lines.push(' - Stationary increments: distribution depends only on interval length.');
+  lines.push(' - Count over length t ~ Poisson(λ t).');
+  lines.push(' - Interarrival times ~ Exp(λ) (i.i.d.).');
+  lines.push('');
+  lines.push('Interpretation of λ:');
+  lines.push(' - λ is average events per unit time.');
+  lines.push(' - Expected events in [0,T] = λT; expected interarrival = 1/λ.');
+  lines.push('');
+  lines.push('Improving approximation: increase n and repeat simulation many times to see Poisson distribution.');
+
+  // output to page
+  out.textContent = lines.join('\n');
+});
+</script>
