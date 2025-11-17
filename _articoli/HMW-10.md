@@ -21,6 +21,3 @@ Analyze the resulting process: identify what stochastic process it approximates,
 {% include poisson_process_simulation.html %}
 
 ```
-
-### Explanation
-
