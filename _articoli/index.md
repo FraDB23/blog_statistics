@@ -12,3 +12,4 @@ permalink: /articoli/
 - [Homework 6](/blog_statistics/articoli/HMW-6/)
 - [Homework 7](/blog_statistics/articoli/HMW-7/)
 - [Homework 8](/blog_statistics/articoli/HMW-8/)
+- [Homework 9](/blog_statistics/articoli/HMW-9/)
