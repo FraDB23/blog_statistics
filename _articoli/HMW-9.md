@@ -10,9 +10,7 @@ permalink: /articoli/HMW-9/
 
 ## 1. Introduction
 
-This short assignment reviews the main interpretations of probability (classical, frequentist, Bayesian, and geometric) and explains how the axiomatic approach helps remove conceptual inconsistencies among them. It also summarizes the relationship between probability theory and measure theory (sigma-algebras, probability measures, measurable functions, random variables). Finally, using the probability axioms, it derives the **subadditivity property** and the **inclusion–exclusion principle**.
-
-The writing style is intentionally simple, similar to that of an undergraduate cybersecurity student.
+This short blog-post reviews the main interpretations of probability (classical, frequentist, Bayesian, and geometric) and explains how the axiomatic approach helps remove conceptual inconsistencies among them. It also summarizes the relationship between probability theory and measure theory (sigma-algebras, probability measures, measurable functions, random variables). Finally, using the probability axioms, it derives the **subadditivity property** and the **inclusion–exclusion principle**.
 
 ---
 
@@ -75,12 +73,14 @@ P(A OR B) = P(A) + P(B BUT NOT A) ≤ P(A) + P(B).
 
 ### 4.2 Inclusion–Exclusion Principle
 
-For two eve### 4.2 Inclusion–Exclusion Principle
 For two events A and B:
 
 **P(A OR B) = P(A) + P(B) - P(A AND B)**
 
-This works because adding P(A) and P(B) counts the intersection twice. Subtracting P(A AND B) corrects the double-counting.
+This works because adding P(A) and P(B) counts the overlap twice; subtracting P(A AND B) corrects the double-counting.
 
-## 5ity each provide useful perspectives, but they can clash conceptually. The axiomatic approach gives a unified, consistent foundation. Measure theory connects probability with rigorous mathematical tools, making it suitable for continuous models and random variables. Finally, standard results like subadditivity and inclusion–exclusion follow directly from the axioms, reinforcing the internal consistency of the framework.
+## 5. Conclusion
+
+The main interpretations of probability each provide useful perspectives, but they can clash conceptually. The axiomatic approach gives a unified, consistent foundation. Measure theory connects probability with rigorous mathematical tools, making it suitable for continuous models and random variables. Finally, standard results like subadditivity and inclusion–exclusion follow directly from the axioms, reinforcing the internal consistency of the framework.
+
 
