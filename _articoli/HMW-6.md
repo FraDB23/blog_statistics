@@ -63,20 +63,14 @@ It keeps track of deviations relative to the *current* mean, so the accumulated 
 ### Variance and standard deviation formulas
 
 - **Sample variance:**  
-  \[
-  s^2 = \frac{M2}{n - 1}
-  \]
+  `s^2 = M2 / (n - 1)`  
   (used when `n > 1`, otherwise `NaN`).
 
 - **Population variance:**  
-  \[
-  \sigma^2 = \frac{M2}{n}
-  \]
+  `sigma^2 = M2 / n`
 
 - **Standard deviation:**  
-  \[
-  s = \sqrt{s^2}
-  \]
+  `s = sqrt(s^2)`
 
 The code computes only the *sample variance* by default.
 

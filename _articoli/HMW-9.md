@@ -4,9 +4,13 @@ title: "Homework 9"
 permalink: /articoli/HMW-9/
 ---
 
+# Homework: Probability Interpretations and the Axiomatic Approach
+
+---
+
 ## 1. Introduction
 
-This blog-post reviews the main interpretations of probability (classical, frequentist, Bayesian, and geometric) and explains how the axiomatic approach helps remove conceptual inconsistencies among them. It also summarizes the relationship between probability theory and measure theory (sigma-algebras, probability measures, measurable functions, random variables). Finally, using the probability axioms, it derives the **subadditivity property** and the **inclusion–exclusion principle**.
+This short assignment reviews the main interpretations of probability (classical, frequentist, Bayesian, and geometric) and explains how the axiomatic approach helps remove conceptual inconsistencies among them. It also summarizes the relationship between probability theory and measure theory (sigma-algebras, probability measures, measurable functions, random variables). Finally, using the probability axioms, it derives the **subadditivity property** and the **inclusion–exclusion principle**.
 
 The writing style is intentionally simple, similar to that of an undergraduate cybersecurity student.
 
@@ -56,29 +60,27 @@ A random variable is a measurable function from the sample space to the real num
 
 ### 4.1 Subadditivity
 
-For any two events (A) and (B):
-[
-P(A \cup B) \leq P(A) + P(B).
-]
-Proof: Write
-[
-A \cup B = A \cup (B \setminus A),
-]
-where (A) and (B \setminus A) are disjoint. Then:
-[
-P(A \cup B) = P(A) + P(B \setminus A) \leq P(A) + P(B).
-]
+For any two events A and B:
+
+**P(A OR B) ≤ P(A) + P(B)**
+
+**Proof:**
+We can rewrite the union as:
+
+A OR B = A OR (B BUT NOT A)
+
+where A and (B BUT NOT A) are disjoint. By additivity:
+
+P(A OR B) = P(A) + P(B BUT NOT A) ≤ P(A) + P(B).
 
 ### 4.2 Inclusion–Exclusion Principle
 
-For two events:
-[
-P(A \cup B) = P(A) + P(B) - P(A \cap B).
-]
-This follows by observing that adding (P(A)) and (P(B)) double-counts the intersection, so we subtract it once.
+For two eve### 4.2 Inclusion–Exclusion Principle
+For two events A and B:
 
----
+**P(A OR B) = P(A) + P(B) - P(A AND B)**
 
-## 5. Conclusion
+This works because adding P(A) and P(B) counts the intersection twice. Subtracting P(A AND B) corrects the double-counting.
 
-The main interpretations of probability each provide useful perspectives, but they can clash conceptually. The axiomatic approach gives a unified, consistent foundation. Measure theory connects probability with rigorous mathematical tools, making it suitable for continuous models and random variables. Finally, standard results like subadditivity and inclusion–exclusion follow directly from the axioms, reinforcing the internal consistency of the framework.
+## 5ity each provide useful perspectives, but they can clash conceptually. The axiomatic approach gives a unified, consistent foundation. Measure theory connects probability with rigorous mathematical tools, making it suitable for continuous models and random variables. Finally, standard results like subadditivity and inclusion–exclusion follow directly from the axioms, reinforcing the internal consistency of the framework.
+
