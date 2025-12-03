@@ -20,3 +20,9 @@ Optional: Generalize the program so that it can handle more general stochastic d
 {% include wiener-sde-sim.html %}
 
 ```
+
+---
+
+## Notes
+
+In the previous homework i didn't use the Euler–Maruyama method so i did it from scratch in this one :).
