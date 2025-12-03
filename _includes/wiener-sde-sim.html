@@ -1,0 +1,383 @@
+<div id="wiener-sde-sim">
+  <!--
+    Wiener process (Brownian motion) & general SDE simulator (Euler–Maruyama)
+    -----------------------------------------------------------------------
+    - This single widget simulates sample paths of the SDE
+         dX_t = mu(X_t, t) dt + sigma(X_t, t) dW_t
+      using the Euler–Maruyama time-discretization.
+    - For a Wiener process (standard Brownian motion) use:
+         mu(x,t)    = 0
+         sigma(x,t) = 1
+    - The UI below provides inputs for T, n, #paths, initial value X0,
+      and text boxes where you can type mu(...) and sigma(...) as JavaScript
+      expressions using variables x and t. Examples are provided.
+    -----------------------------------------------------------------------
+    NOTE: The fields "mu" and "sigma" are evaluated with new Function().
+    Do NOT paste untrusted code into these fields in a real shared environment.
+  -->
+
+  <style>
+    /* small styling to keep the control layout tidy */
+    #wss-controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:10px; }
+    #wss-controls label { font-size:13px; }
+    #wss-controls input[type="number"] { width:80px; }
+    #wss-controls input[type="text"] { width:220px; }
+    #wss-main { display:flex; gap:16px; align-items:flex-start; }
+    #wss-canvas { border:1px solid #ddd; background:#fff; }
+    #wss-info { font-family:monospace; white-space:pre-wrap; max-width:360px; }
+    #wss-legend { margin-top:6px; font-size:13px; }
+    .small { font-size:12px; color:#555; }
+    button { padding:6px 10px; cursor:pointer; }
+  </style>
+
+  <!-- Controls -->
+  <div id="wss-controls">
+    <label>T (total time): <input id="wss-T" type="number" step="0.1" value="1"></label>
+    <label>n (time steps): <input id="wss-n" type="number" value="1000" min="1"></label>
+    <label># paths: <input id="wss-m" type="number" value="10" min="1" max="200"></label>
+    <label>X₀: <input id="wss-x0" type="number" step="0.1" value="0"></label>
+
+    <!-- mu and sigma as JS expressions in x and t -->
+    <label title="drift">mu(x,t): <input id="wss-mu" type="text" value="0"></label>
+    <label title="diffusion">sigma(x,t): <input id="wss-sigma" type="text" value="1"></label>
+
+    <button id="wss-run">Simulate</button>
+    <button id="wss-download">Download CSV</button>
+    <div style="margin-left:8px">
+      <div class="small">Examples: geometric BM → mu=0.1*x, sigma=0.3*x</div>
+    </div>
+  </div>
+
+  <!-- Main area: canvas for plots + info panel -->
+  <div id="wss-main">
+    <canvas id="wss-canvas" width="820" height="360"></canvas>
+    <div id="wss-info">
+      <div id="wss-summary">No simulation yet. Click "Simulate".</div>
+      <div id="wss-legend"></div>
+    </div>
+  </div>
+
+  <script>
+  // ============= Utilities =============
+  // Robust numeric helpers and RNG
+
+  // Box–Muller transform to generate standard normal random numbers
+  function normal() {
+    // generate two normals at a time (we don't cache here for simplicity)
+    let u = 0, v = 0;
+    while (u === 0) u = Math.random(); // avoid zero
+    while (v === 0) v = Math.random();
+    const R = Math.sqrt(-2.0 * Math.log(u));
+    const theta = 2.0 * Math.PI * v;
+    return R * Math.cos(theta); // single standard normal ~ N(0,1)
+  }
+
+  // Compute sample mean of array (assumes numeric)
+  function mean(arr) {
+    if (!arr.length) return NaN;
+    let s = 0;
+    for (let v of arr) s += v;
+    return s / arr.length;
+  }
+  // Compute sample variance (unbiased, dividing by n-1 when n>1)
+  function variance(arr) {
+    if (!arr.length) return NaN;
+    const m = mean(arr);
+    let s = 0;
+    for (let v of arr) s += (v - m) * (v - m);
+    return arr.length > 1 ? s / (arr.length - 1) : 0;
+  }
+
+  // Clamp utility
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+  // ============= Euler–Maruyama implementation =============
+  /*
+    Simulates M paths of the SDE:
+      dX_t = mu(X_t, t) dt + sigma(X_t, t) dW_t,  t in [0, T]
+    using n time steps (so dt = T/n). Returns an object:
+      { t: [t0, t1, ... tn], paths: [path0[], path1[], ...], dt }
+    Each path is an array of length n+1 containing values at times t_j.
+  */
+  function eulerMaruyama(muFunc, sigmaFunc, X0, T, n, M) {
+    const dt = T / n;
+    const sqrtDt = Math.sqrt(dt);
+    // prepare time grid
+    const t = new Array(n + 1);
+    for (let j = 0; j <= n; j++) t[j] = j * dt;
+
+    // container for M paths
+    const paths = new Array(M);
+    for (let i = 0; i < M; i++) {
+      const X = new Array(n + 1);
+      X[0] = X0;
+      for (let j = 0; j < n; j++) {
+        const currX = X[j];
+        const currT = t[j];
+        // Euler–Maruyama step:
+        // X_{j+1} = X_j + mu(X_j, t_j) * dt + sigma(X_j, t_j) * dW_j
+        // where dW_j ~ N(0, dt) = sqrt(dt) * N(0,1)
+        let muVal = 0, sigmaVal = 0;
+        try {
+          muVal = Number(muFunc(currX, currT));
+          sigmaVal = Number(sigmaFunc(currX, currT));
+          if (!isFinite(muVal) || !isFinite(sigmaVal)) {
+            throw new Error('mu or sigma returned non-finite value');
+          }
+        } catch (err) {
+          throw new Error('Error evaluating mu/sigma: ' + err.message);
+        }
+        const dW = sqrtDt * normal();
+        X[j + 1] = currX + muVal * dt + sigmaVal * dW;
+      }
+      paths[i] = X;
+    }
+
+    return { t, paths, dt };
+  }
+
+  // ============= Drawing helpers =============
+  const canvas = document.getElementById('wss-canvas');
+  const ctx = canvas.getContext('2d');
+
+  function clearCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // Draw axes and grid
+  function drawAxes(xmin, xmax, ymin, ymax) {
+    const W = canvas.width, H = canvas.height;
+    ctx.save();
+    ctx.strokeStyle = '#ddd';
+    ctx.lineWidth = 1;
+
+    // light grid lines
+    const nx = 8, ny = 6;
+    for (let i = 0; i <= nx; i++) {
+      const x = (i / nx) * W;
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+    for (let j = 0; j <= ny; j++) {
+      const y = (j / ny) * H;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+
+    // axes (x bottom, y-left)
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 1.5;
+    // x-axis
+    ctx.beginPath(); ctx.moveTo(40, H - 30); ctx.lineTo(W - 10, H - 30); ctx.stroke();
+    // y-axis
+    ctx.beginPath(); ctx.moveTo(40, 10); ctx.lineTo(40, H - 10); ctx.stroke();
+
+    // axis labels (simple numeric ticks)
+    ctx.fillStyle = '#111';
+    ctx.font = '12px monospace';
+    ctx.textAlign = 'center';
+    // x ticks
+    for (let i = 0; i <= 8; i++) {
+      const x = 40 + (i / 8) * (W - 50);
+      const val = (xmin + (i / 8) * (xmax - xmin)).toFixed(2);
+      ctx.fillText(val, x, H - 12);
+    }
+    // y ticks
+    ctx.textAlign = 'right';
+    for (let j = 0; j <= 6; j++) {
+      const y = 10 + (j / 6) * (H - 40);
+      const val = (ymax - (j / 6) * (ymax - ymin)).toFixed(2);
+      ctx.fillText(val, 36, y + 4);
+    }
+
+    ctx.restore();
+  }
+
+  // Map (tVal, xVal) to canvas coordinates
+  function mapToCanvas(tVal, xVal, tMin, tMax, xMin, xMax) {
+    const W = canvas.width, H = canvas.height;
+    const paddingLeft = 40, paddingRight = 10, paddingTop = 10, paddingBottom = 30;
+    const usableW = W - paddingLeft - paddingRight;
+    const usableH = H - paddingTop - paddingBottom;
+    const x = paddingLeft + ((tVal - tMin) / (tMax - tMin)) * usableW;
+    const y = paddingTop + (1 - (xVal - xMin) / (xMax - xMin)) * usableH;
+    return { x, y };
+  }
+
+  // Draw many sample paths (semi-transparent)
+  function plotPaths(sim) {
+    const tArr = sim.t;
+    const paths = sim.paths;
+    const n = tArr.length - 1;
+
+    // determine y range from paths (with a margin)
+    let xmin = tArr[0], xmax = tArr[n];
+    let ymin = Infinity, ymax = -Infinity;
+    for (const p of paths) {
+      for (const v of p) {
+        if (v < ymin) ymin = v;
+        if (v > ymax) ymax = v;
+      }
+    }
+    if (!isFinite(ymin) || !isFinite(ymax)) {
+      ymin = -1; ymax = 1;
+    }
+    const margin = 0.08 * (Math.max(1e-8, ymax - ymin));
+    ymin -= margin; ymax += margin;
+    if (ymin === ymax) { ymin -= 1; ymax += 1; }
+
+    // clear and draw axes/grid
+    clearCanvas();
+    drawAxes(xmin, xmax, ymin, ymax);
+
+    // draw each path
+    ctx.lineWidth = 1;
+    for (let i = 0; i < paths.length; i++) {
+      // choose a color hue per path
+      const hue = Math.floor(360 * (i / Math.max(1, paths.length)));
+      ctx.strokeStyle = `hsla(${hue},80%,40%,0.65)`; // semi-transparent
+      ctx.beginPath();
+      for (let j = 0; j <= n; j++) {
+        const pt = mapToCanvas(tArr[j], paths[i][j], xmin, xmax, ymin, ymax);
+        if (j === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+      }
+      ctx.stroke();
+    }
+
+    // highlight the last path thicker
+    if (paths.length > 0) {
+      const last = paths[paths.length - 1];
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#000';
+      ctx.beginPath();
+      for (let j = 0; j <= n; j++) {
+        const pt = mapToCanvas(tArr[j], last[j], xmin, xmax, ymin, ymax);
+        if (j === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+      }
+      ctx.stroke();
+    }
+  }
+
+  // ============= UI wiring =============
+  const runBtn = document.getElementById('wss-run');
+  const downloadBtn = document.getElementById('wss-download');
+  const summaryDiv = document.getElementById('wss-summary');
+  const legendDiv = document.getElementById('wss-legend');
+
+  // Store latest simulation for download
+  let lastSimulation = null;
+
+  runBtn.addEventListener('click', () => {
+    // Read inputs
+    const T = Number(document.getElementById('wss-T').value);
+    const n = Math.max(1, Math.floor(Number(document.getElementById('wss-n').value)));
+    const M = Math.max(1, Math.floor(Number(document.getElementById('wss-m').value)));
+    const X0 = Number(document.getElementById('wss-x0').value);
+    const muExpr = document.getElementById('wss-mu').value.trim();
+    const sigmaExpr = document.getElementById('wss-sigma').value.trim();
+
+    // Basic input validation
+    if (!isFinite(T) || T <= 0) { summaryDiv.textContent = 'T must be a positive number.'; return; }
+    if (!isFinite(n) || n <= 0) { summaryDiv.textContent = 'n must be a positive integer.'; return; }
+    if (!isFinite(M) || M <= 0) { summaryDiv.textContent = '# paths must be positive.'; return; }
+
+    // Build mu and sigma functions from user expressions.
+    // These functions accept (x, t) and must return a numeric value.
+    // Using new Function is powerful but unsafe in untrusted contexts — we assume trusted local use.
+    let muFunc, sigmaFunc;
+    try {
+      muFunc = new Function('x', 't', 'return (' + muExpr + ');');
+      sigmaFunc = new Function('x', 't', 'return (' + sigmaExpr + ');');
+      // quick test call to reveal syntax errors
+      const testMu = muFunc(X0, 0);
+      const testSigma = sigmaFunc(X0, 0);
+      if (!isFinite(testMu) || !isFinite(testSigma)) {
+        // allow zero but not NaN/Infinity
+        if (!isFinite(testMu) || !isFinite(testSigma)) {
+          // continue — the path generator will check again, but inform user
+          console.warn('mu or sigma test evaluation returned non-finite value', testMu, testSigma);
+        }
+      }
+    } catch (err) {
+      summaryDiv.textContent = 'Error compiling mu/sigma expressions: ' + err.message;
+      return;
+    }
+
+    // Run simulation (wrap in try to capture any runtime evaluation errors)
+    let sim;
+    try {
+      sim = eulerMaruyama(muFunc, sigmaFunc, X0, T, n, M);
+      lastSimulation = { sim, muExpr, sigmaExpr, X0, T, n, M };
+    } catch (err) {
+      summaryDiv.textContent = 'Simulation error: ' + err.message;
+      return;
+    }
+
+    // Plot paths
+    plotPaths(sim);
+
+    // Compute some descriptive statistics about increments
+    // For Brownian motion: theoretical mean = 0, Var(X_T) = sigma^2 * T (if sigma constant)
+    // We'll compute empirical mean/variance of X_T across paths
+    const X_Ts = sim.paths.map(p => p[p.length - 1]);
+    const empiricalMean = mean(X_Ts);
+    const empiricalVar = variance(X_Ts);
+
+    // Also compute sample mean & variance per time slice (optional: show final only)
+    // We'll compute increment statistics for one path (first path) as example:
+    const examplePath = sim.paths[0];
+    const increments = [];
+    for (let j = 1; j < examplePath.length; j++) increments.push(examplePath[j] - examplePath[j - 1]);
+    const incMean = mean(increments);
+    const incVar = variance(increments);
+
+    // Prepare textual summary
+    const lines = [];
+    lines.push('Simulation summary (Euler–Maruyama):');
+    lines.push(` - SDE: dX_t = mu(X_t,t) dt + sigma(X_t,t) dW_t`);
+    lines.push(` - mu(x,t) = ${muExpr}`);
+    lines.push(` - sigma(x,t) = ${sigmaExpr}`);
+    lines.push(` - initial X0 = ${X0}`);
+    lines.push(` - T = ${T}, n = ${n}, dt = ${(T / n).toPrecision(4)}`);
+    lines.push(` - number of simulated paths = ${M}`);
+    lines.push('');
+    lines.push('Empirical statistics (across simulated paths):');
+    lines.push(` - mean of X_T (sample): ${empiricalMean.toPrecision(6)}`);
+    lines.push(` - variance of X_T (sample): ${empiricalVar.toPrecision(6)}`);
+    lines.push('');
+    lines.push('Example increment statistics (first path):');
+    lines.push(` - mean increment ~ ${incMean.toPrecision(6)} (should be close to average drift * dt)`);
+    lines.push(` - var of increments ~ ${incVar.toPrecision(6)} (should be close to average sigma^2 * dt)`);
+    lines.push('');
+    lines.push('Notes on Euler–Maruyama:');
+    lines.push(' - Euler–Maruyama approximates the SDE by stepping with dt and adding the stochastic increment sqrt(dt)*N(0,1).');
+    lines.push(' - Convergence is strong order 0.5 for general SDEs (error ~ sqrt(dt)), better for smooth coefficients.');
+    lines.push(' - For standard Brownian motion (mu=0, sigma=1) you should observe mean ~ 0 and Var(X_T) ~ T.');
+    lines.push('');
+    lines.push('To simulate a Wiener process (Brownian motion) set: mu = 0, sigma = 1.');
+    lines.push('To simulate Geometric Brownian Motion set: mu = a * x ; sigma = b * x  (for constants a, b).');
+
+    summaryDiv.textContent = lines.join('\n');
+
+    // Legend: small color samples per path count (show only up to 10)
+    let legendHtml = '';
+    const showPaths = Math.min(M, 10);
+    for (let i = 0; i < showPaths; i++) {
+      const hue = Math.floor(360 * (i / Math.max(1, M)));
+      legendHtml += `<span style="display:inline-block;width:12px;height:10px;background:hsla(${hue},80%,40%,0.65);margin-right:6px;border:1px solid #ccc"></span>`;
+      legendHtml += `path ${i+1} &nbsp;&nbsp;`;
+      if ((i+1) % 2 === 0) legendHtml += '<br/>';
+    }
+    if (M > showPaths) legendHtml += `<div class="small">and ${M - showPaths} more paths (not listed)</div>`;
+    legendDiv.innerHTML = legendHtml;
+  });
+
+  // Initial draw (empty canvas instructive message)
+  (function initCanvas() {
+    clearCanvas();
+    ctx.fillStyle = '#666';
+    ctx.font = '14px monospace';
+    ctx.fillText('Canvas for SDE paths (click "Simulate")', 30, 40);
+  })();
+  </script>
+</div>
